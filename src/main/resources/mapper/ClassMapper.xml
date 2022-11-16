@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.fgrapp.dao.ClassMapper">
+    <select id="getPage" resultType="java.util.Map">
+        select
+        id, name,isMain, lastUpdateTime
+        from func_class
+        <where>
+            <if test="ew.name != null and ew.name != ''">
+                and name like concat('%', #{ew.name}, '%')
+            </if>
+        </where>
+    </select>
+</mapper>

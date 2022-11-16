@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.fgrapp.dao.CommentMapper">
+    <select id="getListByContextId" resultType="java.util.Map">
+        select
+            fc.id, contextId, userId, upUserId, content, fc.lastUpdateTime,
+               su.nickName as userName, s.nickName as upUserName, su.avatar
+        from func_comment as fc
+        left join sys_user su on fc.userId = su.id
+        left join sys_user s on fc.upUserId = s.id
+        where contextId = #{id}
+    </select>
+</mapper>

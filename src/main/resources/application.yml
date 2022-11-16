@@ -1,0 +1,74 @@
+server:
+  port: 9657
+spring:
+  profiles:
+    active: dev
+  # 邮箱配置
+  mail:
+    # 配置 SMTP 服务器地址
+    host: smtp.qq.com
+    # 发送者邮箱
+    username: 898365387@qq.com
+    # 配置密码，注意不是真正的密码，而是刚刚申请到的授权码
+    password: ***
+    # 端口号465或者587
+    port: 465
+    # 默认的邮件编码为UTF-8
+    default-encoding: UTF-8
+    # 配置SSL 加密工厂
+    properties:
+      mail:
+        smtp:
+          ssl:
+            # 这里设为true时 端口号设为 465 设为false时 端口号设为587
+            enable: true
+          socketFactoryClass: javax.net.ssl.SSLSocketFactory
+        #表示开启 DEBUG 模式，这样，邮件发送过程的日志会在控制台打印出来，方便排查错误
+        debug: false
+  # DataSource Config
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource            # 当前数据源操作类型
+    driver-class-name: com.p6spy.engine.spy.P6SpyDriver
+    druid:
+      url: jdbc:p6spy:mysql://fgrapp1:3306/fgrapp?useUnicode=true&characterEncoding=utf-8&useSSL=false
+      username: ***
+      password: ***
+      # 初始连接数
+      initialSize: 5
+      # 最小连接池数量
+      minIdle: 10
+      # 最大连接池数量
+      maxActive: 20
+      # 配置获取连接等待超时的时间
+      maxWait: 60000
+      # 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒
+      timeBetweenEvictionRunsMillis: 60000
+      # 配置一个连接在池中最小生存的时间，单位是毫秒
+      minEvictableIdleTimeMillis: 300000
+      # 配置一个连接在池中最大生存的时间，单位是毫秒
+      maxEvictableIdleTimeMillis: 900000
+      # 配置检测连接是否有效
+      validationQuery: SELECT 1 FROM DUAL
+      testWhileIdle: true
+      testOnBorrow: false
+      testOnReturn: false
+  # JSON处理时忽略非空字段
+  jackson:
+    default-property-inclusion: non_null
+mybatis-plus:
+  configuration:
+    # 是否开启自动驼峰命名规则（camel case）映射，即从经典数据库列名 A_COLUMN（下划线命名） 到经典 Java 属性名 aColumn（驼峰命名） 的类似映射。
+    map-underscore-to-camel-case: false
+  mapper-locations: classpath:/mapper/*.xml
+logging:
+  level:
+    com.fgrapp: debug
+
+  #阿里云配置
+ali:
+  accessKeyId: ***
+  accessKeySecret: ***
+  endpoint: dysmsapi.aliyuncs.com
+  message:
+    signName: FGRAPP
+    templateCode: ***

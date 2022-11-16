@@ -1,0 +1,1 @@
+## io.lettuce.core.RedisCommandExecutionException: WRONGTYPE Operation against a key holding the wrong kind of value
