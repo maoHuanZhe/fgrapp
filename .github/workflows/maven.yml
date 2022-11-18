@@ -31,5 +31,7 @@ jobs:
           cd /app/fgrapp
           git pull
           mvn -B package --file pom.xml
+          date=` date +%Y%m%d-%H:%M:%S `
+          mv /app/deploy/fgrapp.jar /app/deploy/bck/fgrapp.jar.bck.$date
           mv target/fgrapp.jar /app/deploy/
           /app/deploy/fgrappRestart.sh
