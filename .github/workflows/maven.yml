@@ -29,4 +29,21 @@ jobs:
         cache: maven
     - name: Build with Maven
       run: mvn -B package --file pom.xml
-    
+    - name: scp_upload_file #上传文件到服务器
+      uses: garygrossgarten/github-action-scp@release
+      with:
+        local: 'build/libs/fgrapp.jar' #打包文件的路径
+        remote: '/app/fgrapp/fgrapp.jar' #放到服务器的目录
+        host: ${{ secrets.HOST }} #服务器ip地址
+        username: ${{ secrets.USERNAME }} #服务器ssh用户名
+        password: ${{ secrets.PASSWORD }} #服务器ssh密码
+        port: ${{ secrets.PORT }} # 服务器ssh端口（默认22）
+    - name: deploy_app #开始部署
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }} #服务器ip地址
+        username: ${{ secrets.USERNAME }} #服务器ssh用户名
+        password: ${{ secrets.PASSWORD }} #服务器ssh密码
+        port: ${{ secrets.PORT }} # 服务器ssh端口（默认22）
+        script: |
+          /app/fgrapp/restart.sh
