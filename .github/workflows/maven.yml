@@ -46,4 +46,5 @@ jobs:
         password: ${{ secrets.PASSWORD }} #服务器ssh密码
         port: ${{ secrets.PORT }} # 服务器ssh端口（默认22）
         script: |
-          /app/fgrapp/restart.sh
+          cd /app/fgrapp
+          ./restart.sh
