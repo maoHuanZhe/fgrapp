@@ -32,7 +32,7 @@ jobs:
     - name: scp_upload_file #上传文件到服务器
       uses: garygrossgarten/github-action-scp@release
       with:
-        local: 'build/libs/fgrapp.jar' #打包文件的路径
+        local: '/home/runner/work/fgrapp/fgrapp/target/fgrapp.jar' #打包文件的路径
         remote: '/app/fgrapp/fgrapp.jar' #放到服务器的目录
         host: ${{ secrets.HOST }} #服务器ip地址
         username: ${{ secrets.USERNAME }} #服务器ssh用户名
