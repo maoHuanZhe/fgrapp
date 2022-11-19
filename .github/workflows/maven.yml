@@ -1,0 +1,37 @@
+# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+# 名称
+name: Java CI with Maven
+# 触发条件
+on:
+  push:
+    branches: [ "main" ] # main分支 push 时触发
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: deploy_app #开始部署
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }} #服务器ip地址
+        username: ${{ secrets.USERNAME }} #服务器ssh用户名
+        password: ${{ secrets.PASSWORD }} #服务器ssh密码
+        port: ${{ secrets.PORT }} # 服务器ssh端口（默认22）
+        script: |
+          cd /app/fgrapp
+          git pull
+          mvn -B package --file pom.xml
+          date=` date +%Y%m%d-%H:%M:%S `
+          mv /app/deploy/fgrapp.jar /app/deploy/bck/fgrapp.jar.bck.$date
+          mv target/fgrapp.jar /app/deploy/
+          /app/deploy/fgrappRestart.sh
