@@ -19,7 +19,5 @@ import java.util.Map;
 public interface TopicMapper extends BaseMapper<FuncTopicDo> {
     IPage<Map<String, Object>> getPage(Page<FuncTopicDo> paramPage, @Param(Constants.WRAPPER) Map<String, Object> map);
 
-    void remove(String id);
-
     List<FuncTopicDo> getList();
 }

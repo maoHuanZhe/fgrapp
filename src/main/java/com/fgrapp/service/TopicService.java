@@ -69,7 +69,7 @@ public class TopicService extends ServiceImpl<TopicMapper, FuncTopicDo> {
     }
 
     public void delete(String id) {
-        baseMapper.remove(id);
+        baseMapper.deleteById(id);
         //删除缓存
         stringRedisTemplate.delete(RedisConstants.TOPIC_DETAIL_KEY + id);
     }
