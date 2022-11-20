@@ -1,52 +1,69 @@
 package com.fgrapp.util;
 
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.http.HttpServletRequest;
-import java.net.InetAddress;
-import java.util.Objects;
 
 /**
  * @author fgr
  * @date 2022-11-14 20:27
  **/
+@Slf4j
 public class IpUtils {
-    /**
-     * 获取当前的ServletRequest
-     * @return
-     */
-    protected static HttpServletRequest servletRequest() {
-        return ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
-    }
     //获取客户端IP地址
-    public static String getIpAddr() {
-        HttpServletRequest request = servletRequest();
-        String ip = request.getHeader("x-forwarded-for");
-        if (ip == null || ip.length() == 0 || "unknow".equalsIgnoreCase(ip)) {
+    public static String getIpAddr(HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+        log.info("X-Forwarded-For:" + ip);
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getHeader("Proxy-Client-IP");
+            log.info("Proxy-Client-IP:" + ip);
         }
         if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getHeader("WL-Proxy-Client-IP");
+            log.info("WL-Proxy-Client-IP:" + ip);
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_X_FORWARDED_FOR");
+            log.info("HTTP_X_FORWARDED_FOR:" + ip);
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_X_FORWARDED");
+            log.info("HTTP_X_FORWARDED:" + ip);
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_X_CLUSTER_CLIENT_IP");
+            log.info("HTTP_X_CLUSTER_CLIENT_IP:" + ip);
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_CLIENT_IP");
+            log.info("HTTP_CLIENT_IP:" + ip);
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_FORWARDED_FOR");
+            log.info("HTTP_FORWARDED_FOR:" + ip);
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_FORWARDED");
+            log.info("HTTP_FORWARDED:" + ip);
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_VIA");
+            log.info("HTTP_VIA:" + ip);
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("REMOTE_ADDR");
+            log.info("REMOTE_ADDR:" + ip);
         }
         if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getRemoteAddr();
-            if (ip.equals("127.0.0.1")) {
-                //根据网卡取本机配置的IP
-                InetAddress inet = null;
-                try {
-                    inet = InetAddress.getLocalHost();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                assert inet != null;
-                ip = inet.getHostAddress();
-            }
+            log.info("getRemoteAddr:" + ip);
         }
-        // 多个代理的情况，第一个IP为客户端真实IP,多个IP按照','分割
-        if (ip != null && ip.length() > 15) {
-            if (ip.indexOf(",") > 0) {
-                ip = ip.substring(0, ip.indexOf(","));
+        // 多个路由时，取第一个非unknown的ip
+        final String[] arr = ip.split(",");
+        for (final String str : arr) {
+            if (!"unknown".equalsIgnoreCase(str)) {
+                ip = str;
+                break;
             }
         }
         return ip;

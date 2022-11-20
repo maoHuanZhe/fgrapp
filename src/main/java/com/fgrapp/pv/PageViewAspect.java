@@ -10,7 +10,10 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 import java.util.Objects;
 
@@ -65,10 +68,18 @@ public class PageViewAspect {
         // 缓存 PV
         redisUtils.incr(pageView.prefix() + PV + id,1);
         // 缓存 UV
-        redisUtils.add(pageView.prefix() + UV + id, IpUtils.getIpAddr());
+        redisUtils.add(pageView.prefix() + UV + id, IpUtils.getIpAddr(servletRequest()));
         // 缓存 UV 日访客
-        redisUtils.add(pageView.prefix() + UV_DAY + id, IpUtils.getIpAddr()
+        redisUtils.add(pageView.prefix() + UV_DAY + id, IpUtils.getIpAddr(servletRequest())
                 + "-" + DateUtil.format(new Date(), "yyyyMMdd"));
+    }
+
+    /**
+     * 获取当前的ServletRequest
+     * @return
+     */
+    protected static HttpServletRequest servletRequest() {
+        return ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
     }
 
 }
