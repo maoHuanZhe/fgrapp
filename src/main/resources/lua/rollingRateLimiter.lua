@@ -13,8 +13,6 @@ local maxInInterval = tonumber(ARGV[2])
 local minDifference = tonumber(ARGV[3])
 -- 可选。是否将本次请求存入集合中。
 local addNewTimestamp = ARGV[4]
--- 0 设置过期时间
-redis.call('EXPIRE', zSetName, math.ceil(interval/1000))
 -- 1 删除集合中距离当前时间超过interval的数据
 redis.call('ZREMRANGEBYSCORE', zSetName, 0, now - interval)
 -- 2 获取集合中元素的数量
@@ -25,6 +23,8 @@ if count >= maxInInterval then
     if addNewTimestamp == 'true' then
         redis.call('ZADD', zSetName, now, uuid)
     end
+    -- 设置过期时间
+    redis.call('EXPIRE', zSetName, math.ceil(interval/1000))
     -- 请求数量大于阈值 返回 -1
     return -1
 end
@@ -38,11 +38,15 @@ if (minDifference and count > 0) then
         if addNewTimestamp == 'true' then
             redis.call('ZADD', zSetName, now, uuid)
         end
+        -- 设置过期时间
+        redis.call('EXPIRE', zSetName, math.ceil(interval/1000))
         -- 请求间隔小于阈值 返回 -2
         return -2
     end
 end
 -- 5 将当前请求存入集合
 redis.call('ZADD', zSetName, now, uuid)
+-- 设置过期时间
+redis.call('EXPIRE', zSetName, math.ceil(interval/1000))
 -- 返回成功
 return 1
