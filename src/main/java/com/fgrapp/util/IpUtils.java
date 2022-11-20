@@ -1,15 +1,27 @@
-package com.fgrapp.pv;
+package com.fgrapp.util;
+
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.InetAddress;
+import java.util.Objects;
 
 /**
  * @author fgr
  * @date 2022-11-14 20:27
  **/
 public class IpUtils {
+    /**
+     * 获取当前的ServletRequest
+     * @return
+     */
+    protected static HttpServletRequest servletRequest() {
+        return ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+    }
     //获取客户端IP地址
-    public static String getIpAddr(HttpServletRequest request) {
+    public static String getIpAddr() {
+        HttpServletRequest request = servletRequest();
         String ip = request.getHeader("x-forwarded-for");
         if (ip == null || ip.length() == 0 || "unknow".equalsIgnoreCase(ip)) {
             ip = request.getHeader("Proxy-Client-IP");

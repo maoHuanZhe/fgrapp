@@ -72,3 +72,15 @@ ali:
   message:
     signName: FGRAPP
     templateCode: ***
+# 限流配置
+limit:
+  # 速率限制器区间的长度，以毫秒为单位
+  # 例如，如果您希望用户能够每分钟执行5个操作，则应为60000。
+  interval: 60000
+  # 每个间隔允许的操作数量。
+  # 例如，在上述场景中，这将是5
+  maxInInterval: 2
+  # 可选。连续动作之间允许的最小时间，以毫秒为单位。
+  minDifference: 10000
+  # 可选。请求失败也将本次请求加入集合
+  addNewTimestamp: true

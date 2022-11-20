@@ -1,6 +1,7 @@
 package com.fgrapp.controller;
 
 import com.fgrapp.domain.vo.RegisterVo;
+import com.fgrapp.limit.Limit;
 import com.fgrapp.result.ResponseResultBody;
 import com.fgrapp.service.LoginService;
 import org.springframework.validation.annotation.Validated;
@@ -21,6 +22,7 @@ public class LoginController {
         this.loginService = loginService;
     }
 
+    @Limit(prefix = "rate:limiter:")
     @GetMapping("/{phoneOrEmail}")
     public void sendCode(@PathVariable String phoneOrEmail){
         loginService.sendCode(phoneOrEmail);

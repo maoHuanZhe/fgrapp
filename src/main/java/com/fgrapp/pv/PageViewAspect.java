@@ -1,8 +1,7 @@
 package com.fgrapp.pv;
 
 import cn.hutool.core.date.DateUtil;
-import com.fgrapp.result.Result;
-import com.fgrapp.result.ResultStatus;
+import com.fgrapp.util.IpUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
@@ -11,10 +10,7 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 import java.util.Objects;
 
@@ -35,14 +31,6 @@ public class PageViewAspect {
     private RedisUtils redisUtils;
 
     /**
-     * 获取当前的ServletRequest
-     * @return
-     */
-    protected HttpServletRequest servletRequest() {
-        return ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
-    }
-
-    /**
      * 切入点
      */
     @Pointcut("@annotation(com.fgrapp.pv.PageView)")
@@ -54,7 +42,7 @@ public class PageViewAspect {
      * @return
      */
     @AfterReturning(value = "pageViewAspect() && @annotation(pageView)", returning = "jsonResult")
-    public void around(JoinPoint joinPoint, PageView pageView, Object jsonResult) {
+    public void after(JoinPoint joinPoint, PageView pageView, Object jsonResult) {
         log.info("@PageView请求返回内容：RESPONSE : {}", Objects.nonNull(jsonResult) ? jsonResult.toString() : "");
         // 先判断 pageView 是否为空, 为空则获取类上注解
         if (pageView == null) {
@@ -77,9 +65,9 @@ public class PageViewAspect {
         // 缓存 PV
         redisUtils.incr(pageView.prefix() + PV + id,1);
         // 缓存 UV
-        redisUtils.add(pageView.prefix() + UV + id, IpUtils.getIpAddr(servletRequest()));
+        redisUtils.add(pageView.prefix() + UV + id, IpUtils.getIpAddr());
         // 缓存 UV 日访客
-        redisUtils.add(pageView.prefix() + UV_DAY + id, IpUtils.getIpAddr(servletRequest())
+        redisUtils.add(pageView.prefix() + UV_DAY + id, IpUtils.getIpAddr()
                 + "-" + DateUtil.format(new Date(), "yyyyMMdd"));
     }
 
