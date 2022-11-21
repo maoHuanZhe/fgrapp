@@ -1,2 +1,2 @@
-![example event parameter](https://github.com/github/docs/actions/workflows/maven.yml/badge.svg)
+![example event parameter](https://github.com/maoHuanZhe/fgrapp/actions/workflows/maven.yml/badge.svg)
      
