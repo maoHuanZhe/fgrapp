@@ -10,10 +10,13 @@ import javax.servlet.http.HttpServletRequest;
  **/
 @Slf4j
 public class IpUtils {
-    //获取客户端IP地址
+    /**
+     * 获取客户端IP地址
+     * @param request
+     * @return
+     */
     public static String getIpAddr(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
-        log.info("X-Forwarded-For:" + ip);
         return ip.split(",")[0];
     }
 }
