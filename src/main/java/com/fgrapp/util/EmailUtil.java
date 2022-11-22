@@ -5,11 +5,13 @@ import com.aliyun.dysmsapi20170525.models.SendSmsRequest;
 import com.aliyun.dysmsapi20170525.models.SendSmsResponse;
 import com.aliyun.dysmsapi20170525.models.SendSmsResponseBody;
 import com.aliyun.teaopenapi.models.Config;
+import com.fgrapp.result.ResultException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -77,11 +79,15 @@ public class EmailUtil {
     JavaMailSender javaMailSender;
     @Value("${spring.mail.username}")
     private String sendEmail;
+
     @Autowired
     private TemplateEngine templateEngine;
-    public boolean sendThymeleafMail(String email,String code) {
-        try {
 
+    @Async("commonThreadPool")
+    public void sendThymeleafMail(String email,String code) {
+        try {
+            //根据邮件发送短信
+            log.info("给{}发送验证码:{}",email,code);
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
             mimeMessage.setSubject("【FGRAPP】注册登录验证码");
@@ -97,10 +103,9 @@ public class EmailUtil {
             // 第二个参数true表示这是一个html文本
             helper.setText(process,true);
             javaMailSender.send(mimeMessage);
-            return true;
         }  catch (Exception e){
-            e.printStackTrace();
-            return false;
+            log.info("给{}发送验证码:{},失败",email,code);
+            throw new ResultException("邮件发送失败");
         }
     }
 

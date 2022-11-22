@@ -42,15 +42,9 @@ public class LoginService {
     public void sendEmailMessage(String email) {
         //获取六位验证码
         String code = Utils.getCode();
-        if (emailUtil.sendThymeleafMail(email,code)){
-            //根据邮件发送短信
-            log.info("给{}发送验证码:{}",email,code);
-            //将验证码存入redis中 email为key code为value 过期时间为五分钟
-            cacheClient.set(RedisConstants.LOGIN_CODE_KEY +email,code,RedisConstants.LOGIN_CODE_TTL,TimeUnit.MINUTES);
-        } else {
-            log.info("给{}发送验证码:{},失败",email,code);
-            throw new ResultException("邮件发送失败");
-        }
+        emailUtil.sendThymeleafMail(email,code);
+        //将验证码存入redis中 email为key code为value 过期时间为五分钟
+        cacheClient.set(RedisConstants.LOGIN_CODE_KEY +email,code,RedisConstants.LOGIN_CODE_TTL,TimeUnit.MINUTES);
     }
 
     public String register(RegisterVo info) {
