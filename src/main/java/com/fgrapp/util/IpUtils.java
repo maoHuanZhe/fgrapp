@@ -16,7 +16,8 @@ public class IpUtils {
      * @return
      */
     public static String getIpAddr(HttpServletRequest request) {
-        String ip = request.getHeader("X-Forwarded-For");
-        return ip.split(",")[0];
+        String ip = request.getHeader("Frp-Real-Ip");
+        log.info("Frp-Real-Ip:{}",ip);
+        return ip;
     }
 }

@@ -1,6 +1,7 @@
 package com.fgrapp.interceptor;
 
 import com.fgrapp.domain.SysUserDo;
+import com.fgrapp.result.ResultStatus;
 import com.fgrapp.util.UserHolder;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -19,7 +20,7 @@ public class LoginInterceptor implements HandlerInterceptor {
         //判断用户是否存在
         if (user == null) {
             //如果不存在 拦截请求，设置状态码为401
-            response.setStatus(401);
+            response.setStatus(ResultStatus.NOT_LOGIN.getCode());
             return false;
         }
         //放行

@@ -3,13 +3,10 @@ package com.fgrapp.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.fgrapp.domain.FuncClassDo;
 import com.fgrapp.domain.FuncTopicDo;
-import com.fgrapp.domain.SysUserDo;
 import com.fgrapp.pv.PageView;
 import com.fgrapp.result.ResponseResultBody;
 import com.fgrapp.service.ClassService;
 import com.fgrapp.service.TopicService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
