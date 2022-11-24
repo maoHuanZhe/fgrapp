@@ -30,6 +30,7 @@ public class FuncTopicDo {
      */
     private String summary;
     private Long classId;
+    private Integer type;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)

@@ -26,6 +26,7 @@ create table if not exists func_topic
     problem text null comment '问题',
     summary varchar(128) null,
     answer text null comment '答案',
+    type tinyint default 0 not null comment '0:topic,1:blog',
     classId bigint not null,
     lastUpdateTime timestamp null comment '修改时间'
 )

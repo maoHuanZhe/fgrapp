@@ -3,7 +3,7 @@
 <mapper namespace="com.fgrapp.dao.TopicMapper">
     <select id="getPage" resultType="java.util.Map">
         select
-        id, problem, answer, summary, classId, lastUpdateTime
+        id, problem, answer, summary, classId,type, lastUpdateTime
         from func_topic t
         <where>
             <if test="ew.problem != null and ew.problem != ''">
@@ -17,7 +17,7 @@
     </select>
     <select id="getList" resultType="com.fgrapp.domain.FuncTopicDo">
         select
-            id, problem, classId, lastUpdateTime
+            id, problem,type, classId, lastUpdateTime
         from func_topic
         order by lastUpdateTime desc
     </select>
