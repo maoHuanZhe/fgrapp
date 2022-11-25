@@ -1,26 +1,19 @@
 package com.fgrapp.util;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.connection.RedisClusterConnection;
-import org.springframework.data.redis.connection.RedisClusterNode;
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.jedis.JedisClusterConnection;
-import org.springframework.data.redis.connection.jedis.JedisConnection;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -34,6 +27,89 @@ public class CacheClient {
 
     public CacheClient(StringRedisTemplate stringRedisTemplate) {
         this.stringRedisTemplate = stringRedisTemplate;
+    }
+
+    public Long getLikeNum(String id) {
+        return stringRedisTemplate.opsForZSet().zCard(RedisConstants.TOPIC_LIKED_KEY + id);
+    }
+
+    public void addPv(Object id) {
+        stringRedisTemplate.opsForZSet().incrementScore(RedisConstants.TOPIC_PV_KEY,String.valueOf(id), 1L);
+    }
+
+    public Double getPv(Object id) {
+        return stringRedisTemplate.opsForZSet().score(RedisConstants.TOPIC_PV_KEY,id);
+    }
+
+    public long getAllPv() {
+        long pv = 0L;
+        Cursor<ZSetOperations.TypedTuple<String>> pvCursor = stringRedisTemplate.opsForZSet().scan(RedisConstants.TOPIC_PV_KEY, ScanOptions.scanOptions().build());
+        while (pvCursor.hasNext()) {
+            pv += pvCursor.next().getScore().longValue();
+        }
+        return pv;
+    }
+
+    public void addUv(Object id) {
+        stringRedisTemplate.opsForHyperLogLog().add(RedisConstants.TOPIC_UV_KEY + id,IpUtils.getIpAddr());
+    }
+
+    public Long getUv(Object id) {
+        return stringRedisTemplate.opsForHyperLogLog().size(RedisConstants.TOPIC_UV_KEY + id);
+    }
+
+    public long getAllUv() {
+        long uv = 0L;
+        Cursor<String> uvCursor = stringRedisTemplate.scan(ScanOptions.scanOptions().match(RedisConstants.TOPIC_UV_KEY + "*").build());
+        while (uvCursor.hasNext()) {
+            uv += stringRedisTemplate.opsForHyperLogLog().size(uvCursor.next());
+        }
+        return uv;
+    }
+
+    public void addActive() {
+        stringRedisTemplate.opsForHyperLogLog().add(RedisConstants.TOPIC_ACTIVE_KEY + DateUtil.format(new Date(), "yyyy:MM:dd"), IpUtils.getIpAddr());
+    }
+
+    /**
+     * 根据Id删除内容
+     * @param id
+     */
+    public void deleteById(String id) {
+        stringRedisTemplate.delete(RedisConstants.TOPIC_DETAIL_KEY + id);
+    }
+
+    /**
+     * 点赞操作
+     */
+    public void stared(String id) {
+        stringRedisTemplate.opsForZSet().add(RedisConstants.TOPIC_LIKED_KEY + id, UserHolder.getUserId(), System.currentTimeMillis());
+    }
+
+    /**
+     * 取消点赞
+     * @param id
+     */
+    public void unStared(String id) {
+        stringRedisTemplate.opsForZSet().remove(RedisConstants.TOPIC_LIKED_KEY + id,UserHolder.getUserId());
+    }
+
+    public long getAllStared() {
+        long likedNum = 0L;
+        Cursor<String> cursor = stringRedisTemplate.scan(ScanOptions.scanOptions().match(RedisConstants.TOPIC_LIKED_KEY + "*").build());
+        while (cursor.hasNext()) {
+            likedNum += stringRedisTemplate.opsForZSet().zCard(cursor.next());
+        }
+        return likedNum;
+    }
+    /**
+     * 获取score
+     * @param key
+     * @param member
+     * @return
+     */
+    public Double getScore(String key, String member) {
+        return stringRedisTemplate.opsForZSet().score(key, member);
     }
 
     public void set(String key, Object value, Long time, TimeUnit unit) {

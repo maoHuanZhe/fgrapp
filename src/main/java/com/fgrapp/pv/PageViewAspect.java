@@ -1,21 +1,12 @@
 package com.fgrapp.pv;
 
-import cn.hutool.core.date.DateUtil;
-import com.fgrapp.util.IpUtils;
+import com.fgrapp.util.CacheClient;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.Date;
-import java.util.Objects;
 
 /**
  * @author fgr
@@ -26,12 +17,11 @@ import java.util.Objects;
 @Slf4j
 public class PageViewAspect {
 
-    final String PV = "pv:";
-    final String UV = "uv:";
-    final String UV_DAY = "uv:day:";
+    private final CacheClient cacheClient;
 
-    @Autowired
-    private RedisUtils redisUtils;
+    public PageViewAspect(CacheClient cacheClient) {
+        this.cacheClient = cacheClient;
+    }
 
     /**
      * 切入点
@@ -41,47 +31,19 @@ public class PageViewAspect {
 
     /**
      * 切入处理
-     * @param joinPoint
-     * @return
      */
-    @AfterReturning(value = "pageViewAspect() && @annotation(pageView)", returning = "jsonResult")
-    public void after(JoinPoint joinPoint, PageView pageView, Object jsonResult) {
-        log.info("@PageView请求返回内容：RESPONSE : {}", Objects.nonNull(jsonResult) ? jsonResult.toString() : "");
-        // 先判断 pageView 是否为空, 为空则获取类上注解
-        if (pageView == null) {
-            Class<?> aClass = joinPoint.getTarget().getClass();
-            pageView = AnnotationUtils.findAnnotation(aClass, PageView.class);
-        }
+    @AfterReturning(value = "pageViewAspect()")
+    public void after(JoinPoint joinPoint) {
         Object[] object = joinPoint.getArgs();
         Object id = object[0];
         log.info("id:{}", id);
-        this.cache(pageView,id);
-    }
-
-
-    /**
-     * 缓存 主维度
-     * @param pageView
-     * @param id
-     */
-    private void cache(PageView pageView,Object id){
         // 缓存 PV
-        redisUtils.incr(pageView.prefix() + PV + id,1);
+        cacheClient.addPv(id);
         // 缓存 UV
-        redisUtils.add(pageView.prefix() + UV + id, IpUtils.getIpAddr(servletRequest()));
-        // 缓存 UV 日访客
-        redisUtils.add(pageView.prefix() + UV_DAY + id, IpUtils.getIpAddr(servletRequest())
-                + "-" + DateUtil.format(new Date(), "yyyyMMdd"));
+        cacheClient.addUv(id);
+        // 缓存 日活
+        cacheClient.addActive();
     }
-
-    /**
-     * 获取当前的ServletRequest
-     * @return
-     */
-    protected static HttpServletRequest servletRequest() {
-        return ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
-    }
-
 }
 
 

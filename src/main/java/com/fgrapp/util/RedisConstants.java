@@ -26,8 +26,12 @@ public class RedisConstants {
     /**
      * read
      */
-    public static final String TOPIC_READ_KEY = "topic:uv:day:";
-    public static final String TOPIC_PV_KEY = "topic:pv:";
+    public static final String TOPIC_PV_KEY = "topic:pv";
+    public static final String TOPIC_UV_KEY = "topic:uv:";
+    /**
+     * 日活
+     */
+    public static final String TOPIC_ACTIVE_KEY = "topic:active:";
     /**
      * liked
      */

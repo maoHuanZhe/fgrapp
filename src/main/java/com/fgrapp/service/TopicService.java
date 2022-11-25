@@ -2,18 +2,11 @@ package com.fgrapp.service;
 
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.fgrapp.dao.SysUserMapper;
 import com.fgrapp.dao.TopicMapper;
-import com.fgrapp.domain.CommentDo;
-import com.fgrapp.domain.FuncClassDo;
 import com.fgrapp.domain.FuncTopicDo;
 import com.fgrapp.domain.SysUserDo;
-import com.fgrapp.pv.RedisUtils;
 import com.fgrapp.result.ResultException;
 import com.fgrapp.util.*;
 import lombok.extern.slf4j.Slf4j;
@@ -21,8 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
-import org.yaml.snakeyaml.events.Event;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -39,8 +32,6 @@ public class TopicService extends ServiceImpl<TopicMapper, FuncTopicDo> {
     private final StringRedisTemplate stringRedisTemplate;
     private final SysUserService userService;
     private final CommentService commentService;
-    @Autowired
-    private RedisUtils redisUtils;
     @Autowired
     private CacheClient cacheClient;
 
@@ -71,7 +62,7 @@ public class TopicService extends ServiceImpl<TopicMapper, FuncTopicDo> {
     public void delete(String id) {
         baseMapper.deleteById(id);
         //删除缓存
-        stringRedisTemplate.delete(RedisConstants.TOPIC_DETAIL_KEY + id);
+        cacheClient.deleteById(id);
     }
 
     public void add(FuncTopicDo info) {
@@ -101,7 +92,7 @@ public class TopicService extends ServiceImpl<TopicMapper, FuncTopicDo> {
         //获取点赞数量
         String likedKey = RedisConstants.TOPIC_LIKED_KEY + id;
         map.put("topic",topicDo);
-        map.put("canLike",canLike(likedKey, UserHolder.getUserId()));
+        map.put("canLike",canLike(likedKey));
         map.put("likedUsers",getLikedUser(id));
         map.put("comments",commentService.getListByContextId(id));
         setNum(map,id);
@@ -109,30 +100,27 @@ public class TopicService extends ServiceImpl<TopicMapper, FuncTopicDo> {
     }
 
     private void setNum(Map<String,Object> map, String id){
-        //获取点赞数量
-        String likedKey = RedisConstants.TOPIC_LIKED_KEY + id;
-        Long likeNum = stringRedisTemplate.opsForZSet().zCard(likedKey);
-        map.put("likeNum",likeNum);
-        map.put("uv",redisUtils.count(RedisConstants.TOPIC_READ_KEY+id));
+        map.put("likeNum",cacheClient.getLikeNum(id));
+        map.put("uv",cacheClient.getUv(id));
+        map.put("pv",cacheClient.getPv(id));
     }
 
     public void liked(String id) {
-        Long userId = UserHolder.getUser().getId();
-        String key = RedisConstants.TOPIC_LIKED_KEY + id;
-        if (!canLike(key, userId)) {
+        if (!canLike(id)) {
             //如果已经点赞了 则取消点赞
-            stringRedisTemplate.opsForZSet().remove(key,userId.toString());
+            cacheClient.unStared(id);
         } else {
             //如果没有点赞 则进行点赞
-            stringRedisTemplate.opsForZSet().add(key, userId.toString(), System.currentTimeMillis());
+            cacheClient.stared(id);
         }
     }
 
-    private boolean canLike(String key, Long userId) {
+    private boolean canLike(String id) {
+        String userId = UserHolder.getUserId();
         if (userId == null) {
             return true;
         }
-        Double score = stringRedisTemplate.opsForZSet().score(key, userId.toString());
+        Double score = cacheClient.getScore(RedisConstants.LOGIN_TOKEN_KEY + id, userId);
         return score == null;
     }
 
@@ -155,26 +143,10 @@ public class TopicService extends ServiceImpl<TopicMapper, FuncTopicDo> {
 
     public Map<String, Object> getNum() {
         Map<String, Object> map = new HashMap<>();
-        long likedNum = 0L;
-        Cursor<String> cursor = stringRedisTemplate.scan(ScanOptions.scanOptions().match(RedisConstants.TOPIC_LIKED_KEY + "*").build());
-        while (cursor.hasNext()) {
-            likedNum += stringRedisTemplate.opsForZSet().zCard(cursor.next());
-        }
-        long pv = 0L;
-        Cursor<String> pvCursor = stringRedisTemplate.scan(ScanOptions.scanOptions().match(RedisConstants.TOPIC_PV_KEY + "*").build());
-        while (pvCursor.hasNext()) {
-            pv += NumberUtil.parseInt(stringRedisTemplate.opsForValue().get(pvCursor.next()));
-        }
-        int uv = 0;
-        Cursor<String> uvCursor = stringRedisTemplate.scan(ScanOptions.scanOptions().match(RedisConstants.TOPIC_READ_KEY + "*").build());
-        while (uvCursor.hasNext()) {
-            uv += stringRedisTemplate.opsForHyperLogLog().size(uvCursor.next());
-        }
-
         map.put("comments", commentService.count());
-        map.put("uv", uv);
-        map.put("pv", pv);
-        map.put("liked", likedNum);
+        map.put("uv", cacheClient.getAllUv());
+        map.put("pv", cacheClient.getAllPv());
+        map.put("liked", cacheClient.getAllStared());
         return map;
     }
 }

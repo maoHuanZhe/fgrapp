@@ -62,7 +62,7 @@ public class LimitAspect {
     public Object around(ProceedingJoinPoint joinPoint, Limit limit) {
         Object obj = null;
         try {
-            String zSetName = limit.prefix() + IpUtils.getIpAddr(servletRequest());
+            String zSetName = limit.prefix() + IpUtils.getIpAddr();
             String uuid = UUID.fastUUID().toString(true);
             long now = System.currentTimeMillis();
             //执行lua脚本
