@@ -114,11 +114,11 @@ public class TopicService extends ServiceImpl<TopicMapper, FuncTopicDo> {
     }
 
     private boolean canLike(String id) {
-        String userId = UserHolder.getUserId();
+        Long userId = UserHolder.getUserId();
         if (userId == null) {
             return true;
         }
-        Double score = cacheClient.getScore(RedisConstants.TOPIC_LIKED_KEY + id, userId);
+        Double score = cacheClient.getScore(RedisConstants.TOPIC_LIKED_KEY + id, userId.toString());
         return score == null;
     }
 

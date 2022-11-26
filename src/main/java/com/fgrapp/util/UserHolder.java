@@ -13,12 +13,12 @@ public class UserHolder {
         return tl.get();
     }
 
-    public static String getUserId() {
+    public static Long getUserId() {
         SysUserDo user = getUser();
         if (user == null) {
             return null;
         } else {
-            return user.getId().toString();
+            return user.getId();
         }
     }
 

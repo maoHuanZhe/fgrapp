@@ -87,7 +87,7 @@ public class CacheClient {
      * 点赞操作
      */
     public void stared(String id) {
-        stringRedisTemplate.opsForZSet().add(RedisConstants.TOPIC_LIKED_KEY + id, UserHolder.getUserId(), System.currentTimeMillis());
+        stringRedisTemplate.opsForZSet().add(RedisConstants.TOPIC_LIKED_KEY + id, UserHolder.getUserId().toString(), System.currentTimeMillis());
     }
 
     /**

@@ -124,7 +124,7 @@ public class LoginService {
     }
 
     public void logout() {
-        String userId = UserHolder.getUserId();
+        Long userId = UserHolder.getUserId();
         String token = stringRedisTemplate.opsForValue().get(RedisConstants.LOGIN_TOKEN_KEY + userId);
         stringRedisTemplate.delete(RedisConstants.LOGIN_USER_KEY + token);
         stringRedisTemplate.delete(RedisConstants.LOGIN_TOKEN_KEY + userId);

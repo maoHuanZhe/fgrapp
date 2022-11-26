@@ -23,7 +23,7 @@ public class CommentController {
 
     @PostMapping()
     public void add(@RequestBody CommentDo commentDo) {
-        commentDo.setUserId(Long.getLong(UserHolder.getUserId()));
+        commentDo.setUserId(UserHolder.getUserId());
         commentService.save(commentDo);
     }
 }
