@@ -6,14 +6,18 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -158,6 +162,10 @@ public class CacheClient {
     }
     private static final ExecutorService CACHE_EXECUTORS = Executors.newFixedThreadPool(10);
 
+    @Autowired
+    @Lazy
+    private CacheClient cacheClient;
+
     public <R, ID> R queryWithLogicalExpire(String keyPrefix, ID id, Class<R> type, Function<ID, R> dbQueryCall, Long time, TimeUnit unit) {
         //先从redis中获取
         String key = keyPrefix + id;
@@ -178,19 +186,20 @@ public class CacheClient {
         //获取互斥锁
         boolean flag = tryLock(lockKey);
         if (flag) {
-            //获取成功 开启新的线程 重建缓存
-            CACHE_EXECUTORS.submit(() -> {
-                try {
-                    R r1 = dbQueryCall.apply(id);
-                    setWithLogicalExpire(key,r1,time,unit);
-                } finally {
-                    unLock(lockKey);
-                }
-            });
+            cacheClient.updateCache(key,lockKey,id,dbQueryCall,time,unit);
         }
         //获取失败 直接返回过期数据
         //返回
         return r;
+    }
+    @Async("commonThreadPool")
+    public <R, ID> void updateCache(String key,String lockKey, ID id, Function<ID, R> dbQueryCall, Long time, TimeUnit unit) {
+        try {
+            R r1 = dbQueryCall.apply(id);
+            setWithLogicalExpire(key,r1,time,unit);
+        } finally {
+            unLock(lockKey);
+        }
     }
     /**
      * 获取锁
@@ -210,4 +219,7 @@ public class CacheClient {
         stringRedisTemplate.delete(key);
     }
 
+    public Set<String> readTopId() {
+        return stringRedisTemplate.opsForZSet().reverseRange(RedisConstants.TOPIC_PV_KEY, 0, 4);
+    }
 }

@@ -48,4 +48,12 @@ public class TopicPageController {
     public Map<String,Object> getNum() {
         return service.getNum();
     }
+    @GetMapping("/randomList")
+    public List<FuncTopicDo> randomList(FuncTopicDo info){
+        return service.randomList(info);
+    }
+    @GetMapping("/readTop")
+    public List<FuncTopicDo> readTop(){
+        return service.readTop();
+    }
 }

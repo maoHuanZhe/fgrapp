@@ -21,4 +21,21 @@
         from func_topic
         order by lastUpdateTime desc
     </select>
+    <select id="getRandomIdList" resultType="com.fgrapp.domain.FuncTopicDo">
+        select id, problem, summary
+        from func_topic
+        <where>
+            <if test="id != null">
+                and id != #{id}
+            </if>
+            <if test="classId != null">
+                and classId = #{classId}
+            </if>
+            <if test="type != null">
+                and type = #{type}
+            </if>
+        </where>
+        order by rand()
+        limit 10
+    </select>
 </mapper>

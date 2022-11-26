@@ -89,10 +89,8 @@ public class TopicService extends ServiceImpl<TopicMapper, FuncTopicDo> {
             log.error("内容不存在,id:{}", id);
             throw new ResultException("内容不存在");
         }
-        //获取点赞数量
-        String likedKey = RedisConstants.TOPIC_LIKED_KEY + id;
         map.put("topic",topicDo);
-        map.put("canLike",canLike(likedKey));
+        map.put("canLike",canLike(id));
         map.put("likedUsers",getLikedUser(id));
         map.put("comments",commentService.getListByContextId(id));
         setNum(map,id);
@@ -120,7 +118,7 @@ public class TopicService extends ServiceImpl<TopicMapper, FuncTopicDo> {
         if (userId == null) {
             return true;
         }
-        Double score = cacheClient.getScore(RedisConstants.LOGIN_TOKEN_KEY + id, userId);
+        Double score = cacheClient.getScore(RedisConstants.TOPIC_LIKED_KEY + id, userId);
         return score == null;
     }
 
@@ -148,5 +146,17 @@ public class TopicService extends ServiceImpl<TopicMapper, FuncTopicDo> {
         map.put("pv", cacheClient.getAllPv());
         map.put("liked", cacheClient.getAllStared());
         return map;
+    }
+
+    public List<FuncTopicDo> randomList(FuncTopicDo info) {
+        return baseMapper.getRandomIdList(info);
+    }
+
+    public List<FuncTopicDo> readTop() {
+        Set<String> top5 = cacheClient.readTopId();
+        List<Long> ids = top5.stream().map(Long::valueOf).collect(Collectors.toList());
+        String idStr = StrUtil.join(",", ids);
+        return query().in("id", ids)
+                .last("order by field(id," + idStr + ")").list();
     }
 }
