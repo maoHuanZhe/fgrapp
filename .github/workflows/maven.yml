@@ -6,7 +6,7 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 # 名称
-name: Java CI with Maven
+name: deploy
 # 触发条件
 on:
   push:

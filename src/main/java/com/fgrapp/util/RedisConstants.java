@@ -33,6 +33,10 @@ public class RedisConstants {
      */
     public static final String TOPIC_ACTIVE_KEY = "topic:active:";
     /**
+     * 操作
+     */
+    public static final String TOPIC_COMMIT_KEY = "topic:commit";
+    /**
      * liked
      */
     public static final String TOPIC_LIKED_KEY = "topic:liked:";

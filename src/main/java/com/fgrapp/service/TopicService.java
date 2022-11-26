@@ -57,6 +57,8 @@ public class TopicService extends ServiceImpl<TopicMapper, FuncTopicDo> {
         baseMapper.updateById(info);
         //更新缓存
         cacheClient.setWithLogicalExpire(RedisConstants.TOPIC_DETAIL_KEY + info.getId(),info,RedisConstants.TOPIC_DETAIL_TTL, TimeUnit.MINUTES);
+        //添加提交统计
+        cacheClient.addCommit();
     }
 
     public void delete(String id) {
@@ -73,6 +75,8 @@ public class TopicService extends ServiceImpl<TopicMapper, FuncTopicDo> {
         baseMapper.insert(info);
         //创建缓存
         cacheClient.setWithLogicalExpire(RedisConstants.TOPIC_DETAIL_KEY + info.getId(),info,RedisConstants.TOPIC_DETAIL_TTL, TimeUnit.MINUTES);
+        //添加提交统计
+        cacheClient.addCommit();
     }
 
     public FuncTopicDo getInfo(String id) {
@@ -145,6 +149,9 @@ public class TopicService extends ServiceImpl<TopicMapper, FuncTopicDo> {
         map.put("uv", cacheClient.getAllUv());
         map.put("pv", cacheClient.getAllPv());
         map.put("liked", cacheClient.getAllStared());
+        //获取日活统计
+        map.put("active", cacheClient.getActiveLastYear());
+        map.put("commit", cacheClient.getAllCommit());
         return map;
     }
 

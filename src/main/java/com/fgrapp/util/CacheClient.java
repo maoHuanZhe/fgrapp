@@ -17,6 +17,8 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -75,6 +77,37 @@ public class CacheClient {
         stringRedisTemplate.opsForHyperLogLog().add(RedisConstants.TOPIC_ACTIVE_KEY + DateUtil.format(new Date(), "yyyy:MM:dd"), IpUtils.getIpAddr());
     }
 
+    public Map<String, Long> getActiveLastYear() {
+        Map<String,Long> map = new HashMap<>();
+        Cursor<String> uvCursor = stringRedisTemplate.scan(ScanOptions.scanOptions().match(RedisConstants.TOPIC_ACTIVE_KEY + "*").build());
+        while (uvCursor.hasNext()) {
+            String nextKey = uvCursor.next();
+            String key = nextKey.substring(RedisConstants.TOPIC_ACTIVE_KEY.length()).replaceAll(":", "-");
+            map.put(key,stringRedisTemplate.opsForHyperLogLog().size(nextKey));
+        }
+        return map;
+    }
+
+    /**
+     * 内容操作统计
+     */
+    public void addCommit() {
+        stringRedisTemplate.opsForZSet().incrementScore(RedisConstants.TOPIC_COMMIT_KEY,DateUtil.format(new Date(), "yyyy-MM-dd"), 1L);
+    }
+
+    public Double getCommit(String date) {
+        return stringRedisTemplate.opsForZSet().score(RedisConstants.TOPIC_PV_KEY,date);
+    }
+
+    public Map<String, Double> getAllCommit() {
+        Map<String,Double> map = new HashMap<>();
+        Cursor<ZSetOperations.TypedTuple<String>> cursor = stringRedisTemplate.opsForZSet().scan(RedisConstants.TOPIC_COMMIT_KEY, ScanOptions.scanOptions().build());
+        while (cursor.hasNext()) {
+            ZSetOperations.TypedTuple<String> next = cursor.next();
+            map.put(next.getValue(), next.getScore());
+        }
+        return map;
+    }
     /**
      * 根据Id删除内容
      * @param id
