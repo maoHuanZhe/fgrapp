@@ -1,2 +1,8 @@
 ![example event parameter](https://github.com/maoHuanZhe/fgrapp/actions/workflows/maven.yml/badge.svg)
-     
+![example event parameter](https://img.shields.io/badge/license-MIT-green)
+![example event parameter](https://img.shields.io/badge/SpringBoot-v2.7.5-6DB33F?logo=Spring%20Boot)
+![example event parameter](https://img.shields.io/badge/MySQL-v8.0.26-4479A1?logo=MySQL)
+![example event parameter](https://img.shields.io/badge/Redis-v7.0.5-DC382D?logo=Redis)
+![example event parameter](https://img.shields.io/badge/Lua-v5.4.4-2C2D72?logo=Lua)
+![example event parameter](https://img.shields.io/badge/Elastic-v7.17.6-005571?logo=Elastic)
+![example event parameter](https://img.shields.io/badge/Maven-v3.8.6-C71A36?logo=Apache%20Maven)
