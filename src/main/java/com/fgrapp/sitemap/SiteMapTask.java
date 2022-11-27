@@ -36,8 +36,8 @@ public class SiteMapTask {
     public void configureTasks() {
         log.info("定时任务开始");
         List<FuncTopicDo> list = topicMapper.getList();
-        SiteMapUtil.generator(list);
-
+        SiteMapUtil.generatorXML(list);
+        SiteMapUtil.sendPost(list);
         log.info("定时任务结束");
     }
 }

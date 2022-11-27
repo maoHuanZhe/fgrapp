@@ -5,12 +5,14 @@ import com.redfin.sitemapgenerator.W3CDateFormat;
 import com.redfin.sitemapgenerator.WebSitemapGenerator;
 import com.redfin.sitemapgenerator.WebSitemapUrl;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.*;
+import org.springframework.util.MultiValueMap;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.time.ZoneOffset;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author fgr
@@ -28,7 +30,11 @@ public class SiteMapUtil {
      */
     private static final String DOMAIN = "http://www.fgrapp.com/page/detail/";
 
-    public static void generator(List<FuncTopicDo> list) {
+    /**
+     * 生成site.xml
+     * @param list
+     */
+    public static void generatorXML(List<FuncTopicDo> list) {
         log.info("开始生成site.xml");
         try {
             //获取sitemap的文件存放路径（这里测试使用直接使用临时文件夹）
@@ -42,7 +48,6 @@ public class SiteMapUtil {
                         .fileNamePrefix("site")
                         .dateFormat(DATE_FORMAT)
                         .build();
-
             list.forEach(item -> {
                 try {
                     //新建一个网页地址，有多少个网页就在这里新建多少个WebSitemapUrl对象
@@ -64,4 +69,35 @@ public class SiteMapUtil {
             log.error("site.xml生成失败");
         }
     }
+
+    /**
+     * 发送post请求
+     * @return
+     */
+    public static void sendPost(List<FuncTopicDo> list) {
+        List<String> ids = new ArrayList<>(list.size());
+        list.forEach(item ->{
+            ids.add("http://www.fgrapp.com/page/detail/" + item.getId());
+        });
+        String requestBody = String.join("\n", ids);
+        log.info(requestBody);
+        OkHttpClient client = new OkHttpClient().newBuilder()
+                .build();
+        MediaType mediaType = MediaType.parse("text/plain");
+        RequestBody body = RequestBody.create(requestBody,mediaType);
+        Request request = new Request.Builder()
+                .url("http://data.zz.baidu.com/urls?site=https://www.fgrapp.com&token=Mw5iFrLmA3yjw5sV")
+                .method("POST", body)
+                .addHeader("User-Agent", "curl/7.12.1")
+                .addHeader("Host", "data.zz.baidu.com")
+                .addHeader("Content-Type", "text/plain")
+                .build();
+        try {
+            Response response = client.newCall(request).execute();
+            log.info(response.body().string());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
